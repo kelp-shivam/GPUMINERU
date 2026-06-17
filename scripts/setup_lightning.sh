@@ -31,14 +31,10 @@ echo "[3/6] MinerU 3.3 + API deps..."
 pip install "mineru[all]==3.3.1" -q
 pip install fastapi "uvicorn[standard]" python-multipart aiofiles pydantic pydantic-settings -q
 
-echo "[4/6] Flash Attention 2 (L40S sm_89, CUDA 12.x — no CUDA 13 needed)..."
+echo "[4/6] Flash Attention 2 (prebuilt wheel only — no compile)..."
 FA2_OK=0
 pip install flash-attn --no-build-isolation -q 2>/dev/null && FA2_OK=1 || true
-if [ "$FA2_OK" -eq 0 ]; then
-    echo "  Prebuilt wheel not found — compiling (~10 min)..."
-    MAX_JOBS=4 pip install flash-attn --no-build-isolation 2>&1 | tail -3 && FA2_OK=1 || true
-fi
-[ "$FA2_OK" -eq 1 ] && echo "  FA2 installed" || echo "  FA2 skipped — will use sdpa fallback"
+[ "$FA2_OK" -eq 1 ] && echo "  FA2 installed" || echo "  No prebuilt FA2 wheel — sdpa fallback (still GPU-accelerated)"
 
 echo "[5/6] MinerU config (models → persistent teamspace)..."
 mkdir -p "$MODELS_DIR"
