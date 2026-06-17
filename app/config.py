@@ -16,9 +16,9 @@ class Settings(BaseSettings):
     MINERU_BACKEND: str = "hybrid"
     MINERU_EFFORT: str = "high"
 
-    # L4 46GB: model loads ~20-28GB → 2 safe parallel inference threads
-    # Increase to 3 only if you've profiled peak VRAM < 42GB
-    PARALLEL_WORKERS: int = 2
+    # L40S 48GB: models ~28GB loaded → ~20GB free → 3 parallel workers safe
+    # Drop to 2 if you see OOM; bump to 4 only after nvidia-smi peak check
+    PARALLEL_WORKERS: int = 3
 
     # Enable CUDA MPS for true GPU time-slicing across parallel workers
     # Run `scripts/enable_mps.sh` on host before starting container
