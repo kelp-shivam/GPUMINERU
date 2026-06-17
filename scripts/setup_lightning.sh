@@ -86,10 +86,11 @@ for m in modules:
 if fn_name:
     print(f"Using {mod_name}.{fn_name} (auto-selecting modelscope)...")
     # Pipe "modelscope" to answer the interactive source prompt
+    # Two prompts: source (modelscope/huggingface) + type (pipeline/vlm/all)
     result = subprocess.run(
         [sys.executable, "-c",
          f"from {mod_name} import {fn_name}; {fn_name}()"],
-        input="modelscope\n",
+        input="modelscope\nall\n",
         text=True,
     )
     if result.returncode == 0:
@@ -99,7 +100,7 @@ if fn_name:
     result2 = subprocess.run(
         [sys.executable, "-c",
          f"from {mod_name} import {fn_name}; {fn_name}()"],
-        input="huggingface\n",
+        input="huggingface\nall\n",
         text=True,
     )
     if result2.returncode == 0:
@@ -109,7 +110,7 @@ if fn_name:
 # CLI fallback
 for cmd in ["mineru-models-download", "mineru-models download"]:
     try:
-        r = subprocess.run(cmd.split(), input="modelscope\n", text=True)
+        r = subprocess.run(cmd.split(), input="modelscope\nall\n", text=True)
         if r.returncode == 0:
             print(f"Models downloaded via: {cmd}")
             sys.exit(0)
