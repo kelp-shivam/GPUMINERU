@@ -26,8 +26,8 @@ echo "[2/6] PyTorch ($CUDA_TAG)..."
 pip install torch torchvision --index-url "https://download.pytorch.org/whl/$CUDA_TAG" -q
 
 echo "[3/6] MinerU 3.3 + API deps..."
-# Pin numpy<2 first — Lightning base has matplotlib/scipy that need numpy<2
-pip install "numpy<2" -q
+# Let mineru pull numpy>=2 (needed by opencv 4.13).
+# matplotlib/scipy/sklearn on Lightning base show resolver warnings — harmless at runtime.
 pip install "mineru[all]==3.3.1" -q
 pip install fastapi "uvicorn[standard]" python-multipart aiofiles pydantic pydantic-settings -q
 
