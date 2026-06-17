@@ -4,7 +4,6 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-VENV_DIR="$REPO_DIR/.venv"
 ENV_FILE="$REPO_DIR/.env"
 
 if [ ! -f "$ENV_FILE" ]; then
@@ -12,7 +11,6 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
-source "$VENV_DIR/bin/activate"
 set -a; source "$ENV_FILE"; set +a
 
 # Override paths for Lightning teamspace (persistent storage)
