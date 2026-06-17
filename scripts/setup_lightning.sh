@@ -60,43 +60,64 @@ print(f"Config → {dest}  (attn={attn})")
 PYEOF
 
 echo "[6/6] Downloading MinerU models → $MODELS_DIR ..."
-python3 - <<PYEOF
-import subprocess, sys
+# download_all_models() prompts interactively — pipe "modelscope" to stdin.
+# modelscope: no auth needed. opendatalab models are primary there.
+python3 - <<'PYEOF'
+import subprocess, sys, os
 
-# Try known module paths across MinerU versions
-attempts = [
-    "from mineru.utils.models_download_utils import download_all_models; download_all_models()",
-    "from mineru.utils.download_models import download_all_models; download_all_models()",
-    "from mineru.model.model_list import download_all_models; download_all_models()",
+modules = [
+    "mineru.utils.models_download_utils",
+    "mineru.utils.download_models",
+    "mineru.model.model_list",
 ]
-for code in attempts:
+
+fn_name = None
+mod_name = None
+for m in modules:
     try:
-        exec(code)
-        print("Models downloaded via Python API.")
-        sys.exit(0)
-    except (ImportError, AttributeError):
+        mod = __import__(m, fromlist=["download_all_models"])
+        if hasattr(mod, "download_all_models"):
+            fn_name = "download_all_models"
+            mod_name = m
+            break
+    except ImportError:
         continue
 
-# Fallback: CLI command
-for cmd in ["mineru-models-download", "mineru download-models"]:
-    try:
-        r = subprocess.run(cmd.split(), check=True)
-        print(f"Models downloaded via: {cmd}")
+if fn_name:
+    print(f"Using {mod_name}.{fn_name} (auto-selecting modelscope)...")
+    # Pipe "modelscope" to answer the interactive source prompt
+    result = subprocess.run(
+        [sys.executable, "-c",
+         f"from {mod_name} import {fn_name}; {fn_name}()"],
+        input="modelscope\n",
+        text=True,
+    )
+    if result.returncode == 0:
+        print("Models downloaded via modelscope.")
         sys.exit(0)
-    except (FileNotFoundError, subprocess.CalledProcessError):
+    print("modelscope attempt failed, trying huggingface...")
+    result2 = subprocess.run(
+        [sys.executable, "-c",
+         f"from {mod_name} import {fn_name}; {fn_name}()"],
+        input="huggingface\n",
+        text=True,
+    )
+    if result2.returncode == 0:
+        print("Models downloaded via huggingface.")
+        sys.exit(0)
+
+# CLI fallback
+for cmd in ["mineru-models-download", "mineru-models download"]:
+    try:
+        r = subprocess.run(cmd.split(), input="modelscope\n", text=True)
+        if r.returncode == 0:
+            print(f"Models downloaded via: {cmd}")
+            sys.exit(0)
+    except FileNotFoundError:
         continue
 
-# Last resort: huggingface hub
-print("Falling back to huggingface_hub download...")
-from huggingface_hub import snapshot_download
-import os
-models_dir = "$MODELS_DIR"
-snapshot_download(
-    repo_id="opendatalab/MinerU3.3-VLM",
-    local_dir=os.path.join(models_dir, "MinerU3.3-VLM"),
-    ignore_patterns=["*.md", "*.txt"],
-)
-print("Models downloaded via huggingface_hub.")
+print("ERROR: Could not download models. Check logs above.")
+sys.exit(1)
 PYEOF
 
 if [ ! -f "$REPO_DIR/.env" ]; then
