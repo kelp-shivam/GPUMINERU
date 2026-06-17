@@ -1,0 +1,30 @@
+services:
+  mineru-api:
+    build: .
+    image: mineru-gpu-api:3.3
+    container_name: mineru-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - mineru-data:/app/data
+      - mineru-models:/root/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  mineru-data:
+  mineru-models:

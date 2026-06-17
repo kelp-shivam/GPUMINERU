@@ -1,0 +1,27 @@
+[Unit]
+Description=MinerU 3.3 GPU API Server
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/mineru
+EnvironmentFile=/opt/mineru/.env
+ExecStart=/opt/mineru/.venv/bin/uvicorn app.main:app \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --workers 1 \
+    --timeout-keep-alive 300
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mineru-api
+
+# GPU access
+Environment=CUDA_VISIBLE_DEVICES=0
+Environment=NVIDIA_VISIBLE_DEVICES=all
+
+[Install]
+WantedBy=multi-user.target
